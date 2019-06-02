@@ -13,4 +13,7 @@ export class HeaderComponent implements OnInit {
   ngOnInit() {
   }
 
+  addContact() {
+    console.log('add-contact requested');
+  }
 }
