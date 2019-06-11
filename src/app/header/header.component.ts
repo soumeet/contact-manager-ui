@@ -8,12 +8,15 @@ import { Component, OnInit } from '@angular/core';
 export class HeaderComponent implements OnInit {
 
   title = 'Contacts';
+  displayContactDialog: boolean = false;
 
   constructor() { }
+
   ngOnInit() {
   }
 
   addContact() {
     console.log('add-contact requested');
+    this.displayContactDialog = true;
   }
 }

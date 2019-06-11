@@ -7,6 +7,9 @@ import { AppComponent } from './app.component';
 import { HeaderComponent } from './header/header.component';
 import { AddContactComponent } from './add-contact/add-contact.component';
 
+import { DialogModule } from 'primeng/dialog';
+
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -16,7 +19,8 @@ import { AddContactComponent } from './add-contact/add-contact.component';
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
-    AppRoutingModule
+    AppRoutingModule,
+    DialogModule
   ],
   providers: [],
   bootstrap: [AppComponent]
