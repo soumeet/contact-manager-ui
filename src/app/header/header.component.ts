@@ -19,4 +19,10 @@ export class HeaderComponent implements OnInit {
     console.log('add-contact requested');
     this.displayContactDialog = true;
   }
+
+  onDialogClose($event) {
+    console.log('header-component.ts onDialogClose()');
+    console.log($event);
+    this.displayContactDialog = false;
+  }
 }

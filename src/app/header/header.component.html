@@ -49,4 +49,4 @@
   <button class="btn btn-outline-primary" (click)="addContact()">Add Contact</button>
 </nav>
 
-<app-add-contact *ngIf="displayContactDialog" [display]="displayContactDialog" [modify]="add"></app-add-contact>
+<app-add-contact *ngIf="displayContactDialog" [display]="displayContactDialog" [modify]="add" (returnData)="onDialogClose($event)"></app-add-contact>
