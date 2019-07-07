@@ -6,12 +6,13 @@ import { Email } from "./email";
 export interface Contact {
     contactId: number;
 	company: string;
+	suffix: string;
 	firstName: string;
 	lastName: string;
 	middleName: string;
-	suffix: string;
     phones: Phone[];
     emails: Email[];
 	addresses: Address[];
 	photo: Photo;
+	labels: string[];
 }

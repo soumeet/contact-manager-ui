@@ -1,3 +1,109 @@
-<p-dialog header="Add Contact" [(visible)]="displayDialog" (onShow)="onDialogShow($event, contactDialog)" (onHide)="onDialogHide($event, contactDialog)" #contactDialog>
-  Content
+<form [formGroup]="contactForm">
+<p-dialog [(visible)]="displayDialog" modal="true" draggable="false" responsive="true" closable="false" (onShow)="onDialogShow($event, contactDialog)" (onHide)="onDialogHide($event, contactDialog)" [style]="{width: '600px'}" [contentStyle]="{'overflow':'visible'}" #contactDialog>
+  <p-header>Add Contact
+    <a role="button" class="ng-tns-c3-0 ui-dialog-titlebar-icon ui-dialog-titlebar-close ui-corner-all ng-star-inserted" (click)="expandNames=true">
+        <span class="pi pi-plus"></span>
+    </a>
+  </p-header>
+  <div class="ui-fluid">
+    <div class="ui-g">
+      <div class="ui-g-12">
+        <div class="ui-g-6" *ngIf="expandNames">
+          <span class="ui-float-label">
+            <input pInputText formControlName="suffix" > 
+            <label for="suffix">Suffix</label>
+          </span>      
+        </div>
+        <div class="ui-g-6">
+          <span class="ui-float-label">
+            <input pInputText formControlName="firstName" > 
+            <label for="firstName">First Name</label>
+          </span>      
+        </div>
+        <div class="ui-g-6" *ngIf="expandNames">
+          <span class="ui-float-label">
+              <input pInputText formControlName="middleName" > 
+              <label for="middleName">Middle Name</label>
+          </span>    
+        </div>
+        <div class="ui-g-6">
+          <span class="ui-float-label">
+              <input pInputText formControlName="lastName" > 
+              <label for="lastName">Last Name</label>
+          </span>    
+        </div>
+      </div>
+      <div class="ui-g-12">
+        <div class="ui-g-12">
+          <span class="ui-float-label">
+              <input id="float-input" type="text" pInputText formControlName="company" > 
+              <label for="company">Company</label>
+          </span>      
+        </div>
+      </div>
+
+      <div formArrayName="emails" *ngFor="let email of contactForm.get('emails').controls; let i = index;"  class="ui-g-12">
+        <div [formGroupName]="i">
+          <div class="ui-g-8">
+            <span class="ui-float-label">
+                <input formControlName="emailId" pInputText [pKeyFilter]="blockSpace"> 
+                <label for="emailid">Email</label>
+            </span>
+          </div>   
+          <div class="ui-g-3">
+              <span class="ui-float-label">
+                  <p-dropdown formControlName="emailType" [options]="emailTypes" editable="true">
+                  </p-dropdown>
+                  <label for="emailTypes">Type</label>
+              </span>
+          </div>   
+          <div class="ui-g-1">
+            <i class="pi pi-plus" style="font-size: 2em;margin-top: 3px;" (click)="addEmail(i)"></i>
+            <i class="pi pi-minus" style="font-size: 2em;margin-top: 3px;" *ngIf="i > 0" (click)="removeEmail(i)"></i>
+          </div>
+        </div>
+      </div>
+
+      <div formArrayName="phones" *ngFor="let phone of contactForm.get('phones').controls; let i = index;"  class="ui-g-12">
+        <div [formGroupName]="i">
+          <div class="ui-g-3">
+              <span class="ui-float-label">
+                <p-dropdown formControlName="phoneCode" [options]="countryCodes" editable="true"></p-dropdown>
+                <label for="countrycode">Code</label>
+              </span>
+          </div>    
+          <div class="ui-g-5">
+            <span class="ui-float-label">
+              <input formControlName="phoneNumber" pInputText pKeyFilter="int"> 
+              <label for="phoneno">Phone</label>
+            </span>
+          </div>   
+          <div class="ui-g-3">
+              <span class="ui-float-label">
+                <p-dropdown formControlName="phoneType" [options]="phoneTypes" editable="true"></p-dropdown>
+                <label for="phoneTypes">Type</label>
+              </span>
+          </div>
+          <div class="ui-g-1">
+            <i class="pi pi-plus" style="font-size: 2em;margin-top: 3px;" (click)="addPhone()"></i>
+          </div> 
+        </div>
+      </div>
+
+      <div class="ui-g-12"> 
+        <div class="ui-g-12">
+            <span class="ui-float-label">
+              <p-autoComplete formControlName="labels" [suggestions]="filteredLabelsMultiple" [minLength]="1" (completeMethod)="filterLabelMultiple($event)" [multiple]="true"></p-autoComplete>
+              <label for="selectedLabels">Labels</label>
+            </span>
+        </div> 
+      </div>
+
+    </div>
+  </div>
+  <p-footer>
+    <p-button label="Save" styleClass="ui-button-success" icon="pi pi-check" (click)="onSubmit(contactForm.value)"></p-button>
+    <p-button label="Cancel" styleClass="ui-button-danger" icon="pi pi-times" (click)="onCancel($event, contactDialog)"></p-button>
+  </p-footer>
 </p-dialog>
+</form>
