@@ -1,8 +1,13 @@
 <form [formGroup]="contactForm">
-<p-dialog [(visible)]="displayDialog" modal="true" draggable="false" responsive="true" closable="false" (onShow)="onDialogShow($event, contactDialog)" (onHide)="onDialogHide($event, contactDialog)" [style]="{width: '600px'}" [contentStyle]="{'overflow':'visible'}" #contactDialog>
-  <p-header>Add Contact
-    <a role="button" class="ng-tns-c3-0 ui-dialog-titlebar-icon ui-dialog-titlebar-close ui-corner-all ng-star-inserted" (click)="expandNames=true">
-        <span class="pi pi-plus"></span>
+<p-dialog [(visible)]="displayDialog" modal="true" [draggable]="false" responsive="true" [closable]="false" (onShow)="onDialogShow($event, contactDialog)" (onHide)="onDialogHide($event, contactDialog)" [style]="{width: '600px'}" [contentStyle]="{'overflow':'visible'}" #contactDialog>
+  <p-header>Add Contact {{ contactForm.valid }}
+    <a role="button" class="ng-tns-c3-0 ui-dialog-titlebar-icon ui-dialog-titlebar-close ui-corner-all ng-star-inserted" (click)="toggleExpand()">
+        <span *ngIf="!expandNames" class="pi pi-plus"></span>
+        <span *ngIf="expandNames" class="pi pi-minus"></span>
+        <!-- <span [ngClass]="{
+          'pi pi-plus': expandNames,
+          'pi pi-minus': !expandNames
+        }"></span> -->
     </a>
   </p-header>
   <div class="ui-fluid">
@@ -46,7 +51,10 @@
         <div [formGroupName]="i">
           <div class="ui-g-8">
             <span class="ui-float-label">
-                <input formControlName="emailId" pInputText [pKeyFilter]="blockSpace"> 
+                <input formControlName="emailId" pInputText [pKeyFilter]="blockSpace" [pTooltip]="getTooltipText(i, 'emails','emailId')" tooltipPosition="top" tooltipEvent="hover" [ngClass]="{ 
+                  'is-invalid': contactForm.controls.emails.at(i).controls.emailId.invalid &&       contactForm.controls.emails.at(i).controls.emailId.dirty,
+                  'is-valid': contactForm.controls.emails.at(i).controls.emailId.valid
+                }" (blur)="checkExisting(i, 'emails','emailId')"> 
                 <label for="emailid">Email</label>
             </span>
           </div>   
@@ -74,13 +82,16 @@
           </div>    
           <div class="ui-g-5">
             <span class="ui-float-label">
-              <input formControlName="phoneNumber" pInputText pKeyFilter="int"> 
-              <label for="phoneno">Phone</label>
+              <input formControlName="phoneNumber" pInputText pKeyFilter="int" [pTooltip]="getTooltipText(i, 'phones','phoneNumber')" tooltipPosition="top" tooltipEvent="hover" [ngClass]="{ 
+                'is-invalid': contactForm.controls.phones.at(i).controls.phoneNumber.invalid &&       contactForm.controls.phones.at(i).controls.phoneNumber.dirty,
+                'is-valid': contactForm.controls.phones.at(i).controls.phoneNumber.valid
+              }" (blur)="checkExisting(i, 'phones','phoneNumber')"> 
+              <label for="phoneno"> Phone </label>
             </span>
           </div>   
           <div class="ui-g-3">
               <span class="ui-float-label">
-                <p-dropdown formControlName="phoneType" [options]="phoneTypes" editable="true"></p-dropdown>
+                <p-dropdown formControlName="phoneType" [options]="phoneTypes" editable="true" [pTooltip]="getTooltipText(i, 'phones','phoneType')" tooltipPosition="top" tooltipEvent="hover"></p-dropdown>
                 <label for="phoneTypes">Type</label>
               </span>
           </div>
@@ -102,8 +113,9 @@
     </div>
   </div>
   <p-footer>
-    <p-button label="Save" styleClass="ui-button-success" icon="pi pi-check" (click)="onSubmit(contactForm.value)"></p-button>
+    <p-button label="Save" styleClass="ui-button-success" icon="pi pi-check" (click)="onSubmit(contactForm)"></p-button>
     <p-button label="Cancel" styleClass="ui-button-danger" icon="pi pi-times" (click)="onCancel($event, contactDialog)"></p-button>
   </p-footer>
 </p-dialog>
 </form>
+<p-toast></p-toast>

@@ -1,16 +1,21 @@
-import { Component, OnInit, Input, OnChanges, Output, EventEmitter } from '@angular/core';
-import { FormGroup, FormControl, FormBuilder, FormArray, Validators } from '@angular/forms';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { FormGroup, FormControl, FormBuilder, FormArray, Validators, NgForm, ValidatorFn, ValidationErrors } from '@angular/forms';
 
 import { Dialog } from 'primeng/dialog';
 import { SelectItem } from 'primeng/components/common/selectitem';
+import { MessageService } from 'primeng/api';
 
 import { BaseService } from '../services/base.service';
 import { HttpService } from '../services/http.service';
+import { ContactService } from '../services/contact.service';
+import { PhoneService } from '../services/phone.service';
+import { EmailService } from '../services/email.service';
 
 @Component({
     selector: 'app-add-contact',
     templateUrl: './add-contact.component.html',
-    styleUrls: ['./add-contact.component.css']
+    styleUrls: ['./add-contact.component.css'],
+    providers: [MessageService]
 })
 export class AddContactComponent implements OnInit {
 
@@ -28,23 +33,32 @@ export class AddContactComponent implements OnInit {
     selectedPhoneType: string;
     selectedCountryCode: string;
     selectedLabels: string[];
-    blockSpace: RegExp = /[^\s]/; 
-
+    
     countryData: any[];
     filteredLabelsMultiple: any[];
-
+    
     contactForm: FormGroup;
     emails: FormArray;
     phones: FormArray;
     labels: FormArray;
+    
+    emailPattern: RegExp = /^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$/;
+    phonePattern: RegExp = /^\d{10}$/;
+    blockSpace: RegExp = /[^\s]/; 
 
-    constructor(private formBuilder: FormBuilder, private baseService: BaseService, private httpService: HttpService) {
+    constructor(private formBuilder: FormBuilder, 
+        private baseService: BaseService, 
+        private httpService: HttpService,
+        private contactService: ContactService,
+        private phoneService: PhoneService,
+        private emailService: EmailService,
+        private messageService: MessageService) {
         this.contactForm =  this.formBuilder.group({
             suffix: new FormControl('', ),
             firstName: new FormControl('', [Validators.required, Validators.minLength(1), Validators.maxLength(10)]),
             middleName: new FormControl('', ),
             lastName: new FormControl('', [Validators.maxLength(10)]),
-            company: new FormControl('', [Validators.required, Validators.minLength(1)]),
+            company: new FormControl(''),
             emails: this.formBuilder.array([this.createEmail()]),
             phones: this.formBuilder.array([this.createPhone()]),
             labels: new FormControl('', )
@@ -105,13 +119,13 @@ export class AddContactComponent implements OnInit {
         }
     }
 
-    onDialogHide($event, dialog: Dialog) {
+    onDialogHide() {
         console.log("add-contact-component.ts: onDialogHide()");
         let data = { 'retVal' : 0 };
         this.returnData.emit(data);
     }
     
-    onDialogShow($event, dialog: Dialog) {
+    onDialogShow() {
         console.log("add-contact-component.ts: onDialogHide()");
         //console.log(dialog);
     }
@@ -134,14 +148,18 @@ export class AddContactComponent implements OnInit {
         return filtered;
     }
 
-    onSubmit(contactFormValue: any) {
-        console.log('onSubmit()', contactFormValue);
-    }
-
     createEmail(): FormGroup {
         return this.formBuilder.group({
-            emailId: new FormControl('', [Validators.required, Validators.minLength(10), Validators.maxLength(50)]),
-            emailType: new FormControl('', [Validators.minLength(1), Validators.maxLength(10)]),
+            emailId: new FormControl('', [
+                Validators.required, 
+                Validators.maxLength(50), 
+                Validators.pattern(this.emailPattern),
+                this.duplicateCheckValidator
+            ]),
+            emailType: new FormControl('OTHER', [
+                Validators.required, 
+                Validators.minLength(1), 
+                Validators.maxLength(10)]),
         });
     }
 
@@ -159,9 +177,20 @@ export class AddContactComponent implements OnInit {
 
     createPhone(): FormGroup {
         return this.formBuilder.group({
-            phoneCode: new FormControl('', [Validators.maxLength(5)]),
-            phoneNumber: new FormControl('', [Validators.required, Validators.minLength(10)]),
-            phoneType: new FormControl('', [Validators.minLength(1), Validators.maxLength(10)]),
+            phoneCode: new FormControl('', [
+                Validators.maxLength(5)
+            ]),
+            phoneNumber: new FormControl('', [
+                Validators.required, 
+                Validators.minLength(10),
+                Validators.maxLength(10),
+                Validators.pattern(this.phonePattern),
+                this.duplicateCheckValidator    
+            ]),
+            phoneType: new FormControl('OTHER', Validators.compose([
+                Validators.required,
+                Validators.maxLength(10)
+            ])),
         });
     }
 
@@ -170,12 +199,104 @@ export class AddContactComponent implements OnInit {
         this.phones.push(this.createPhone());
     }
 
-    removePhone(formGroup: FormGroup) {
-        // this.contactForm.
+    removePhone(index: number) {
+        console.log('removePhone()', index);
     }
 
-    onCancel($event, dialog: Dialog): void {
+    onSubmit(contactForm: FormGroup): void {
+        console.log('onSubmit()');
+        console.log(contactForm);
+        // let res = this.save(contactForm.value);
+    }
+
+    onCancel(dialog: Dialog): void {
         console.log('onCancel()');
-        this.onDialogHide(event, dialog);
+        this.onDialogHide();
+    }
+
+    toggleExpand(): void {
+        if (this.expandNames)
+            this.expandNames = false;
+        else
+            this.expandNames = true;
+    }
+
+    getErrors(field: any): string {
+        let msg: string = '';
+        console.log(field);
+        return msg;
+    }
+
+    getTooltipText(index: number, formgroup: string, formcontrol: string): string {
+        let text: string = '';
+        if ((this.contactForm.get(formgroup)as FormArray).at(index).get(formcontrol).hasError('required'))
+            text = 'Required';
+        else if ((this.contactForm.get(formgroup)as FormArray).at(index).get(formcontrol).hasError('minlength'))
+            text = 'Length less than ' + ((this.contactForm.get(formgroup) as FormArray).at(index).get(formcontrol).getError('minlength').requiredLength); 
+        else if ((this.contactForm.get(formgroup)as FormArray).at(index).get(formcontrol).hasError('maxlength'))
+            text = 'Length more than ' + ((this.contactForm.get(formgroup) as FormArray).at(index).get(formcontrol).getError('maxlength').requiredLength);
+        else if ((this.contactForm.get(formgroup)as FormArray).at(index).get(formcontrol).hasError('pattern'))
+            text = 'Invalid Format';
+        else if ((this.contactForm.get(formgroup)as FormArray).at(index).get(formcontrol).hasError('duplicate-check'))
+            text = ((this.contactForm.get(formgroup) as FormArray).at(index).get(formcontrol).getError('duplicate-check'));
+        else
+            text = 'Valid';
+        // console.log(formgroup, index, formcontrol, text);
+        return text;
+    }
+
+    log(field: any): void {
+        console.log(field);
+    }
+
+    save(contactFormValue: any): any {
+        return this.contactService.addContact(contactFormValue);
+    }
+
+    /*ADDS DUPLICATE-CHECK FLAG*/
+    duplicateCheckValidator(): ValidationErrors {
+        return {'duplicate-check': 'Requires Validation' };
+    }
+    
+
+    /*VALIDATES PHONE-NUMBER FROM DATABASE*/
+    checkExisting(index: number, formgroup: string, formcontrol: string) {
+        if(
+            !(this.contactForm.get(formgroup)as FormArray).at(index).get(formcontrol).hasError('required') &&
+            !(this.contactForm.get(formgroup)as FormArray).at(index).get(formcontrol).hasError('minlength') &&
+            !(this.contactForm.get(formgroup)as FormArray).at(index).get(formcontrol).hasError('maxlength') &&
+            !(this.contactForm.get(formgroup)as FormArray).at(index).get(formcontrol).hasError('pattern')
+        ) {
+            if ((this.contactForm.get(formgroup) as FormArray).at(index).get(formcontrol).hasError('duplicate-check')) {
+                let value = ((this.contactForm.get(formgroup) as FormArray).at(index).get(formcontrol).value);
+                // console.log('checkExisting-' + formcontrol, value );
+                this.getCheckExistingSubscription(formgroup, value).subscribe( response => {
+                    // console.log(response); 
+                    if (response == '0') {
+                        (this.contactForm.get(formgroup) as FormArray).at(index).get(formcontrol).setErrors(null);
+                        let field = formcontrol == 'phoneNumber' ? 'Phone Number' : 'Email ID';
+                        this.showMessage('success', field, 'Available');
+                    }
+                    else {
+                        (this.contactForm.get(formgroup) as FormArray).at(index).get(formcontrol).setErrors({
+                            'duplicate-check': 'Already Exists'
+                        });
+                        let field = formcontrol == 'phoneNumber' ? 'Phone Number' : 'Email ID';
+                        this.showMessage('error', field, 'Not Available');
+                    }
+                });
+            }
+        }
+    }
+
+    getCheckExistingSubscription(field: string, value: string) {
+        if( field == 'phones')
+            return this.phoneService.validatePhoneNumber(value);
+        else if( field == 'emails')
+            return this.emailService.validateEmailId(value);
+    }
+
+    showMessage(type: string, summary: string, detail: string) {
+        this.messageService.add({severity: type, summary: summary, detail: detail});
     }
 }
