@@ -27,7 +27,9 @@ export class AddContactComponent implements OnInit {
 
     emailTypes: SelectItem[];
     phoneTypes: SelectItem[];
+    addressTypes: SelectItem[];
     countryCodes: SelectItem[];
+    countries: SelectItem[];
     availableLabels: string[];
     selectedEmailType: string;
     selectedPhoneType: string;
@@ -40,6 +42,7 @@ export class AddContactComponent implements OnInit {
     contactForm: FormGroup;
     emails: FormArray;
     phones: FormArray;
+    addresses: FormArray;
     labels: FormArray;
     
     emailPattern: RegExp = /^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$/;
@@ -61,6 +64,7 @@ export class AddContactComponent implements OnInit {
             company: new FormControl(''),
             emails: this.formBuilder.array([this.createEmail()]),
             phones: this.formBuilder.array([this.createPhone()]),
+            addresses: this.formBuilder.array([this.createAddress()]),
             labels: new FormControl('', )
         });
         this.emailTypes = [
@@ -73,7 +77,13 @@ export class AddContactComponent implements OnInit {
             {label: 'Work', value: 'WORK'},
             {label: 'Other', value: 'OTHER'}
         ];
+        this.addressTypes = [
+            {label: 'Home', value: 'HOME'},
+            {label: 'Work', value: 'WORK'},
+            {label: 'Other', value: 'OTHER'}
+        ];
         this.countryCodes = [];
+        this.countries = [];
         this.countryData = [];
         this.baseService.getLabels().then(lbls => {
             //console.log(lbls);
@@ -83,7 +93,7 @@ export class AddContactComponent implements OnInit {
         if(window.sessionStorage.getItem('countryData') != null){
             //console.log(window.sessionStorage.getItem('countryData'));
             this.countryData = JSON.parse(window.sessionStorage.getItem('countryData'));
-            this.loadCountryCodesFromSession();
+            this.loadFromSession();
         }
         else{
             this.httpService.getCountryCodes().then( data => {
@@ -96,7 +106,7 @@ export class AddContactComponent implements OnInit {
                         });
                 }
                 window.sessionStorage.setItem('countryData', JSON.stringify(this.countryData));
-                this.loadCountryCodesFromSession();
+                this.loadFromSession();
             });
         }
     }
@@ -111,10 +121,13 @@ export class AddContactComponent implements OnInit {
         // console.log("displayDialog: " + this.displayDialog + " modify: " + this.modify);
     }
 
-    loadCountryCodesFromSession(): void {
+    loadFromSession(): void {
         for(let i of this.countryData){
             this.countryCodes.push(
                 { label: i['alpha3Code'] + ' ' +  i['callingCode'], value: i['callingCode'] },
+            );
+            this.countries.push(
+                { label: i['name'], value: i['name'] },
             );
         }
     }
@@ -203,9 +216,46 @@ export class AddContactComponent implements OnInit {
         console.log('removePhone()', index);
     }
 
+    createAddress(): FormGroup {
+        return this.formBuilder.group({
+            houseno: new FormControl('', [
+                Validators.maxLength(200)
+            ]),
+            street: new FormControl('', [
+                Validators.maxLength(200)
+            ]),
+            locality: new FormControl('', [
+                Validators.maxLength(200)
+            ]),
+            city: new FormControl('', Validators.compose([
+                Validators.required,
+                Validators.maxLength(50)
+            ])),
+            pincode: new FormControl('', [
+                Validators.maxLength(6)
+            ]),
+            country: new FormControl('', [
+                Validators.maxLength(50)
+            ]),
+            addressType: new FormControl('OTHER', Validators.compose([
+                Validators.required,
+                Validators.maxLength(10)
+            ])),
+        });
+    }
+
+    addAddress(): void {
+        this.addresses = this.contactForm.get('addresses') as FormArray;
+        this.addresses.push(this.createAddress());
+    }
+
+    removeAddress(index: number) {
+        console.log('removeAddress()', index);
+    }    
+
     onSubmit(contactForm: FormGroup): void {
         console.log('onSubmit()');
-        console.log(contactForm);
+        console.log(JSON.stringify(contactForm.value));
         // let res = this.save(contactForm.value);
     }
 
@@ -270,8 +320,9 @@ export class AddContactComponent implements OnInit {
             if ((this.contactForm.get(formgroup) as FormArray).at(index).get(formcontrol).hasError('duplicate-check')) {
                 let value = ((this.contactForm.get(formgroup) as FormArray).at(index).get(formcontrol).value);
                 // console.log('checkExisting-' + formcontrol, value );
-                this.getCheckExistingSubscription(formgroup, value).subscribe( response => {
-                    // console.log(response); 
+                this.getCheckExistingSubscription(formgroup, value)
+                .subscribe( response => {
+                    console.log(response); 
                     if (response == '0') {
                         (this.contactForm.get(formgroup) as FormArray).at(index).get(formcontrol).setErrors(null);
                         let field = formcontrol == 'phoneNumber' ? 'Phone Number' : 'Email ID';

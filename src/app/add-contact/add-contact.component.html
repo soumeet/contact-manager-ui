@@ -83,7 +83,7 @@
           <div class="ui-g-5">
             <span class="ui-float-label">
               <input formControlName="phoneNumber" pInputText pKeyFilter="int" [pTooltip]="getTooltipText(i, 'phones','phoneNumber')" tooltipPosition="top" tooltipEvent="hover" [ngClass]="{ 
-                'is-invalid': contactForm.controls.phones.at(i).controls.phoneNumber.invalid &&       contactForm.controls.phones.at(i).controls.phoneNumber.dirty,
+                'is-invalid': contactForm.controls.phones.at(i).controls.phoneNumber.invalid && contactForm.controls.phones.at(i).controls.phoneNumber.dirty,
                 'is-valid': contactForm.controls.phones.at(i).controls.phoneNumber.valid
               }" (blur)="checkExisting(i, 'phones','phoneNumber')"> 
               <label for="phoneno"> Phone </label>
@@ -101,6 +101,60 @@
         </div>
       </div>
 
+      <div formArrayName="addresses" *ngFor="let address of contactForm.get('addresses').controls; let i = index;"  class="ui-g-12">
+        <div [formGroupName]="i">
+          <!-- <div class="ui-g-12"> -->
+            <div class="ui-g-2" *ngIf="expandNames">
+              <span class="ui-float-label">
+                <input pInputText formControlName="houseno" > 
+                <label for="houseNo">House No</label>
+              </span>      
+            </div>
+            <div class="ui-g-6" *ngIf="expandNames">
+              <span class="ui-float-label">
+                <input pInputText formControlName="street" > 
+                <label for="street">Street</label>
+              </span>    
+            </div>
+            <div class="ui-g-4" *ngIf="expandNames">
+              <span class="ui-float-label">
+                <input pInputText formControlName="locality" > 
+                <label for="locality">Locality</label>
+              </span>    
+            </div>
+          <!-- </div> -->
+          <!-- <div class="ui-g-12"> -->
+            <div class="ui-g-3">
+              <span class="ui-float-label">
+                <p-dropdown formControlName="country" [options]="countries" editable="true" [pTooltip]="getTooltipText(i, 'addresses','country')" tooltipPosition="top" tooltipEvent="hover"></p-dropdown>
+                <label for="country">Country</label>
+              </span>      
+            </div>
+            <div class="ui-g-3">
+              <span class="ui-float-label">
+                  <input id="float-input" type="text" pInputText formControlName="city" [pTooltip]="getTooltipText(i, 'addresses','city')" tooltipPosition="top" tooltipEvent="hover"> 
+                  <label for="city">City</label>
+              </span>      
+            </div>
+            <div class="ui-g-2">
+              <span class="ui-float-label">
+                  <input id="float-input" type="text" pInputText formControlName="pincode" [pTooltip]="getTooltipText(i, 'addresses','pincode')" tooltipPosition="top" tooltipEvent="hover"> 
+                  <label for="pincode">Pincode</label>
+              </span>      
+            </div>
+            <div class="ui-g-3">
+              <span class="ui-float-label">
+                <p-dropdown formControlName="addressType" [options]="addressTypes" editable="true" [pTooltip]="getTooltipText(i, 'addresses','addressType')" tooltipPosition="top" tooltipEvent="hover"></p-dropdown>
+                <label for="addressType">Type</label>
+              </span>      
+            </div>
+            <div class="ui-g-1">
+                <i class="pi pi-plus" style="font-size: 2em;margin-top: 3px;" (click)="addAddress()"></i>
+            </div>
+          <!-- </div> -->
+        </div>
+      </div>
+
       <div class="ui-g-12"> 
         <div class="ui-g-12">
             <span class="ui-float-label">
@@ -113,8 +167,10 @@
     </div>
   </div>
   <p-footer>
-    <p-button label="Save" styleClass="ui-button-success" icon="pi pi-check" (click)="onSubmit(contactForm)"></p-button>
+    <p-button label="Save" styleClass="ui-button-success" icon="pi pi-check" [disabled]="!contactForm.valid" (click)="onSubmit(contactForm)"></p-button>
+    <!-- <button class="btn btn-outline-success" (click)="onSubmit(contactForm)">Save</button> -->
     <p-button label="Cancel" styleClass="ui-button-danger" icon="pi pi-times" (click)="onCancel($event, contactDialog)"></p-button>
+    <!-- <button class="btn btn-outline-danger" (click)="onCancel($event, contactDialog)">Cancel</button> -->
   </p-footer>
 </p-dialog>
 </form>

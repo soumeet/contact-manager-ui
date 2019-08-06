@@ -39,15 +39,13 @@
 </nav> -->
 <nav class="navbar navbar-light bg-light">
   <a class="navbar-brand">
-      <i class="pi pi-list"></i>
-    <i class="pi pi-users" style="font-size: 1em"></i>
     {{ title }}
   </a>
   <form class="form-inline">
     <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+    <button class="btn btn-outline-dark" type="submit">Search</button>
   </form>
-  <button class="btn btn-outline-primary" (click)="addContact()">Add Contact</button>
+  <button class="btn btn-outline-dark" (click)="addContact()">Add Contact</button>
 </nav>
 
 <app-add-contact *ngIf="displayContactDialog" [display]="displayContactDialog" [modify]="add" (returnData)="onDialogClose($event)"></app-add-contact>

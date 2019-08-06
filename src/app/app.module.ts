@@ -26,7 +26,6 @@ import { TooltipModule } from 'primeng/tooltip';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ToastModule } from 'primeng/toast';
 
-
 @NgModule({
   declarations: [
     AppComponent,
